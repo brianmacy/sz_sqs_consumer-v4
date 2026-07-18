@@ -22,7 +22,7 @@ def send_batch(sqs, batch):
     needSingleSend = True
 
   if needSingleSend:
-    print(f'Falling back to single send')
+    print('Falling back to single send')
     for line in batch:
       try:
         sqs.send_message(QueueUrl=args.queue, MessageBody=line)
