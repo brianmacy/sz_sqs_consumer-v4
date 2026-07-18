@@ -7,17 +7,12 @@ import orjson
 import logging
 import traceback
 
-import importlib
 import sys
 import os
 import time
-import random
 import boto3
 
 from senzing import (
-    SzConfig,
-    SzConfigManager,
-    SzEngine,
     SzEngineFlags,
     SzBadInputError,
     SzRetryTimeoutExceededError,
@@ -164,7 +159,7 @@ try:
                                 print(
                                     result
                                 )  # we would handle pushing to withinfo queues here BUT that is likely a second future task/executor
-                        except (SzRetryTimeoutExceededError, SzBadInputError) as err:
+                        except (SzRetryTimeoutExceededError, SzBadInputError):
                             # in SQS you have to push to deadletter
                             record = orjson.loads(msg[TUPLE_MSG]["Body"])
                             print(
