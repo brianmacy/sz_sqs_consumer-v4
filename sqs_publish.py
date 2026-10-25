@@ -1,23 +1,23 @@
 #! /usr/bin/env python3
 
 import argparse
+
 import boto3
 import botocore
+
 
 def send_batch(sqs, batch):
   needSingleSend = False
 
   try:
     payload = []
-    cnt = 0
-    for line in batch:
+    for cnt, line in enumerate(batch):
       payload.append({'Id': str(cnt), 'MessageBody': line})
-      cnt += 1
 
     response = sqs.send_message_batch(QueueUrl=args.queue, Entries=payload)
     if 'Failed' in response:
       needSingleSend = True
-  except Exception as error:
+  except (botocore.exceptions.BotoCoreError, botocore.exceptions.ClientError) as error:
     print(error)
     needSingleSend = True
 
@@ -31,7 +31,7 @@ def send_batch(sqs, batch):
         if error.response['Error']['Code'] == 'InvalidParameterValue':
           print(f'Record too long: {line}')
         else:
-          raise error
+          raise
 
 
 parser = argparse.ArgumentParser()
@@ -43,10 +43,9 @@ args = parser.parse_args()
 sqs = boto3.client('sqs')
 
 with open(args.file, 'r') as read_file:
-    cnt = 0
     lines_batch = []
     cnt_batch = 0
-    for line in read_file:
+    for cnt, line in enumerate(read_file, start=1):
       lines_batch.append(line)
       cnt_batch += 1
 
@@ -55,7 +54,6 @@ with open(args.file, 'r') as read_file:
         lines_batch = []
         cnt_batch = 0
 
-      cnt += 1
       if cnt%1000==0:
         print(f'Published {cnt} messages')
 
